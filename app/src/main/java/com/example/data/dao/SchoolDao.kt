@@ -12,6 +12,9 @@ interface SchoolDao {
     @Query("SELECT * FROM ppdb_registrations ORDER BY distanceKm ASC, timestamp DESC")
     fun getAllRegistrations(): Flow<List<PPDBRegistration>>
 
+    @Query("SELECT COUNT(*) FROM ppdb_registrations")
+    suspend fun getRegistrationsCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRegistration(registration: PPDBRegistration): Long
 
@@ -28,12 +31,18 @@ interface SchoolDao {
     @Query("SELECT * FROM attendance_records ORDER BY timestamp DESC")
     fun getAllAttendance(): Flow<List<AttendanceRecord>>
 
+    @Query("SELECT COUNT(*) FROM attendance_records")
+    suspend fun getAttendanceCount(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendance(record: AttendanceRecord): Long
 
     // Exam Score Queries
     @Query("SELECT * FROM exam_scores ORDER BY timestamp DESC")
     fun getAllExamScores(): Flow<List<ExamScore>>
+
+    @Query("SELECT COUNT(*) FROM exam_scores")
+    suspend fun getExamScoresCount(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExamScore(score: ExamScore): Long

@@ -149,9 +149,10 @@ class SchoolViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun seedInitialDataIfEmpty() {
         viewModelScope.launch {
-            // Seed PPDB
-            registrations.collect { list ->
-                if (list.isEmpty()) {
+            try {
+                // Seed PPDB with a proper one-time count check
+                val regCount = repository.getRegistrationsCount()
+                if (regCount == 0) {
                     val initialList = listOf(
                         PPDBRegistration(nama = "Ahmad Rifai", nik = "3215011234560001", nisn = "0112345678", asalSekolah = "TK Tunas Bangsa", jalur = "Zonasi", alamat = "Dawuan Tengah RT 03/05", distanceKm = 0.8, status = "Verified", score = 85),
                         PPDBRegistration(nama = "Siti Aminah", nik = "3215011234560002", nisn = "0112345679", asalSekolah = "TK Bina Lestari", jalur = "Zonasi", alamat = "Dawuan Barat Blok M", distanceKm = 1.2, status = "Verified", score = 78),
@@ -162,13 +163,10 @@ class SchoolViewModel(application: Application) : AndroidViewModel(application) 
                     )
                     initialList.forEach { repository.insertRegistration(it) }
                 }
-            }
-        }
 
-        viewModelScope.launch {
-            // Seed Attendance
-            attendance.collect { list ->
-                if (list.isEmpty()) {
+                // Seed Attendance with a proper one-time count check
+                val attCount = repository.getAttendanceCount()
+                if (attCount == 0) {
                     val sdf = SimpleDateFormat("dd MMM yyyy", Locale.US)
                     val baseTime = System.currentTimeMillis()
                     for (i in 1..10) {
@@ -177,16 +175,16 @@ class SchoolViewModel(application: Application) : AndroidViewModel(application) 
                         repository.insertAttendance(AttendanceRecord(date = dateString, status = status))
                     }
                 }
-            }
-        }
 
-        viewModelScope.launch {
-            // Seed Exam Scores
-            examScores.collect { list ->
-                if (list.isEmpty()) {
+                // Seed Exam Scores with a proper one-time count check
+                val examCount = repository.getExamScoresCount()
+                if (examCount == 0) {
                     repository.insertExamScore(ExamScore(examName = "UTS Matematika", score = 90, maxScore = 100, cheatingFlags = 0, status = "Passed"))
                     repository.insertExamScore(ExamScore(examName = "Ujian Harian IPA", score = 85, maxScore = 100, cheatingFlags = 1, status = "Passed"))
                 }
+            } catch (e: Exception) {
+                // Log exception gracefully instead of crashing on startup
+                android.util.Log.e("SchoolViewModel", "Error seeding initial database data", e)
             }
         }
     }

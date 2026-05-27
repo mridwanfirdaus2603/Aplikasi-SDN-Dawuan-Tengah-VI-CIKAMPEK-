@@ -73,8 +73,8 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             val account = task.getResult(ApiException::class.java)
             if (account != null) {
                 viewModel.onGoogleSignInSuccess(
@@ -85,7 +85,7 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
             } else {
                 showAlternativeSelector = true
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             showAlternativeSelector = true
         }
     }

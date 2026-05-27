@@ -11,6 +11,18 @@ class SchoolRepository(private val schoolDao: SchoolDao) {
     val attendance: Flow<List<AttendanceRecord>> = schoolDao.getAllAttendance()
     val examScores: Flow<List<ExamScore>> = schoolDao.getAllExamScores()
 
+    suspend fun getRegistrationsCount(): Int {
+        return schoolDao.getRegistrationsCount()
+    }
+
+    suspend fun getAttendanceCount(): Int {
+        return schoolDao.getAttendanceCount()
+    }
+
+    suspend fun getExamScoresCount(): Int {
+        return schoolDao.getExamScoresCount()
+    }
+
     suspend fun insertRegistration(registration: PPDBRegistration): Long {
         return schoolDao.insertRegistration(registration)
     }
