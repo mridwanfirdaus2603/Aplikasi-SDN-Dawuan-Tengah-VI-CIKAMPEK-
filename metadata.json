@@ -1,0 +1,6 @@
+{
+  "name": "SDN Dawuan VI",
+  "description": "Interactive school web portal and Indonesian PPDB/SPMB system for SDN DAWUAN TENGAH VI featuring Neo-brutalism UI style.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
