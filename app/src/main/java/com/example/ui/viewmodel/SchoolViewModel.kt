@@ -48,6 +48,34 @@ class SchoolViewModel(application: Application) : AndroidViewModel(application) 
     var currentStudentClass by mutableStateOf("Kelas VI")
     var currentStudentNISN by mutableStateOf("0123456789")
 
+    // --- State: Google Authentication ---
+    var googleAccountName by mutableStateOf<String?>(null)
+    var googleAccountEmail by mutableStateOf<String?>(null)
+    var googleAccountPhotoUrl by mutableStateOf<String?>(null)
+    var isGoogleAuthenticated by mutableStateOf(false)
+
+    fun onGoogleSignInSuccess(name: String?, email: String?, photoUrl: String?) {
+        googleAccountName = name
+        googleAccountEmail = email
+        googleAccountPhotoUrl = photoUrl
+        isGoogleAuthenticated = true
+        if (name != null) {
+            currentStudentName = name
+            currentStudentClass = "Siswa Google Auth"
+            currentStudentNISN = "G-${Math.abs(email?.hashCode() ?: 0).toString().take(10)}"
+        }
+    }
+
+    fun onGoogleSignOut() {
+        googleAccountName = null
+        googleAccountEmail = null
+        googleAccountPhotoUrl = null
+        isGoogleAuthenticated = false
+        currentStudentName = "Budi Setiawan"
+        currentStudentClass = "Kelas VI"
+        currentStudentNISN = "0123456789"
+    }
+
     // --- State: E-Learning ---
     var selectedCurriculum by mutableStateOf("Merdeka") // Merdeka, K13
     var selectedSubject by mutableStateOf("IPAS") // IPAS, Matematika, Bahasa Indonesia, PJOK

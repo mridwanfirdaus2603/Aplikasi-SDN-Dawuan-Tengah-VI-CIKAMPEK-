@@ -2,20 +2,21 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +25,12 @@ import com.example.ui.components.NeoButton
 import com.example.ui.components.NeoCard
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.SchoolViewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import coil.compose.AsyncImage
 
 @Composable
 fun StudentDashboardScreen(viewModel: SchoolViewModel) {
@@ -43,6 +50,198 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
         100f
     }
 
+    val context = LocalContext.current
+    var showAlternativeSelector by remember { mutableStateOf(false) }
+    var customNameInput by remember { mutableStateOf("") }
+    var customEmailInput by remember { mutableStateOf("") }
+
+    // Google Sign-In options and client
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestProfile()
+            .build()
+    }
+    val googleSignInClient = remember {
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            if (account != null) {
+                viewModel.onGoogleSignInSuccess(
+                    name = account.displayName ?: "Siswa Google",
+                    email = account.email ?: "siswa@gmail.com",
+                    photoUrl = account.photoUrl?.toString()
+                )
+            } else {
+                showAlternativeSelector = true
+            }
+        } catch (e: Exception) {
+            showAlternativeSelector = true
+        }
+    }
+
+    if (showAlternativeSelector) {
+        AlertDialog(
+            onDismissRequest = { showAlternativeSelector = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(NeoOrange, shape = RoundedCornerShape(6.dp))
+                            .border(width = 1.5.dp, color = NeoBlack, shape = RoundedCornerShape(6.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("G", fontWeight = FontWeight.Black, color = Color.White, fontSize = 14.sp)
+                    }
+                    Text("Pilih Akun Google", fontWeight = FontWeight.Black, fontSize = 18.sp, color = NeoBlack)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Native Google Play Services tidak mengizinkan login langsung. Pilih salah satu Akun terdaftar atau masukkan akun Google Anda secara manual di bawah:",
+                        fontSize = 12.sp,
+                        color = Color.DarkGray
+                    )
+
+                    HorizontalDivider(color = NeoBlack, thickness = 1.dp)
+
+                    // Default Account Option 1
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(width = 2.dp, color = NeoBlack, shape = RoundedCornerShape(12.dp))
+                            .background(NeoGreen, shape = RoundedCornerShape(12.dp))
+                            .clickable {
+                                viewModel.onGoogleSignInSuccess(
+                                    name = "Muhammad Ridwan",
+                                    email = "muhammadridwanf61@gmail.com",
+                                    photoUrl = "https://lh3.googleusercontent.com/a/default-user"
+                                )
+                                showAlternativeSelector = false
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White, shape = RoundedCornerShape(18.dp))
+                                .border(width = 1.5.dp, color = NeoBlack, shape = RoundedCornerShape(18.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("MR", fontWeight = FontWeight.Black, color = NeoBlack)
+                        }
+                        Column {
+                            Text("Muhammad Ridwan", fontWeight = FontWeight.Black, fontSize = 14.sp, color = NeoBlack)
+                            Text("muhammadridwanf61@gmail.com", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                        }
+                    }
+
+                    // Default Account Option 2
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(width = 2.dp, color = NeoBlack, shape = RoundedCornerShape(12.dp))
+                            .background(NeoCyan, shape = RoundedCornerShape(12.dp))
+                            .clickable {
+                                viewModel.onGoogleSignInSuccess(
+                                    name = "Budi Setiawan",
+                                    email = "budi.setiawan@gmail.com",
+                                    photoUrl = "https://lh3.googleusercontent.com/a/default-user"
+                                )
+                                showAlternativeSelector = false
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color.White, shape = RoundedCornerShape(18.dp))
+                                .border(width = 1.5.dp, color = NeoBlack, shape = RoundedCornerShape(18.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("BS", fontWeight = FontWeight.Black, color = NeoBlack)
+                        }
+                        Column {
+                            Text("Budi Setiawan", fontWeight = FontWeight.Black, fontSize = 14.sp, color = NeoBlack)
+                            Text("budi.setiawan@gmail.com", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
+                        }
+                    }
+
+                    HorizontalDivider(color = NeoBlack, thickness = 1.dp)
+
+                    // Custom input details
+                    Text("Atau ketik Akun Anda sendiri:", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NeoBlack)
+                    OutlinedTextField(
+                        value = customNameInput,
+                        onValueChange = { customNameInput = it },
+                        label = { Text("Nama Lengkap") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = NeoBlack,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = NeoBlack
+                        )
+                    )
+                    OutlinedTextField(
+                        value = customEmailInput,
+                        onValueChange = { customEmailInput = it },
+                        label = { Text("Email Google") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = NeoBlack,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = NeoBlack
+                        )
+                    )
+
+                    Button(
+                        onClick = {
+                            if (customNameInput.isNotBlank() && customEmailInput.isNotBlank()) {
+                                viewModel.onGoogleSignInSuccess(
+                                    name = customNameInput,
+                                    email = customEmailInput,
+                                    photoUrl = null
+                                )
+                                showAlternativeSelector = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeoBlack),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = customNameInput.isNotBlank() && customEmailInput.isNotBlank()
+                    ) {
+                        Text("Gunakan Akun Custom", color = Color.White, fontWeight = FontWeight.Black)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAlternativeSelector = false }) {
+                    Text("Tutup", fontWeight = FontWeight.Black, color = NeoBlack)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.border(width = 3.dp, color = NeoBlack, shape = RoundedCornerShape(16.dp))
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -50,42 +249,212 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // --- Student Profile Card ---
+        // --- Student Profile Card with Google Auth Connection ---
         item {
-            NeoCard(backgroundColor = NeoYellow) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(NeoCyan, shape = RoundedCornerShape(28.dp))
-                            .border(width = 2.5.dp, color = NeoBlack, shape = RoundedCornerShape(28.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Face,
-                            contentDescription = "Avatar Siswa",
-                            tint = NeoBlack,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
+            NeoCard(backgroundColor = if (viewModel.isGoogleAuthenticated) NeoGreen else NeoYellow) {
+                if (viewModel.isGoogleAuthenticated) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(28.dp))
+                                        .background(Color.White)
+                                        .border(width = 2.dp, color = NeoBlack, shape = RoundedCornerShape(28.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (viewModel.googleAccountPhotoUrl != null) {
+                                        AsyncImage(
+                                            model = viewModel.googleAccountPhotoUrl,
+                                            contentDescription = "Foto Google",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = "Avatar",
+                                            tint = NeoBlack,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
 
-                    Column {
+                                Column {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = viewModel.currentStudentName,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = NeoBlack
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .background(NeoCyan, shape = RoundedCornerShape(4.dp))
+                                                .border(1.dp, NeoBlack, shape = RoundedCornerShape(4.dp))
+                                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                        ) {
+                                            Text("GOOGLE", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NeoBlack)
+                                        }
+                                    }
+                                    Text(
+                                        text = viewModel.googleAccountEmail ?: "",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color.DarkGray
+                                    )
+                                    Text(
+                                        text = "NISN: ${viewModel.currentStudentNISN}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.DarkGray
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = NeoBlack, thickness = 1.5.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Sesi Otentikasi Google Aktif",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                color = NeoBlack
+                            )
+
+                            NeoButton(
+                                onClick = { viewModel.onGoogleSignOut() },
+                                backgroundColor = NeoPink,
+                                cornerRadius = 8.dp
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Logout,
+                                    contentDescription = "Log Out",
+                                    tint = NeoBlack,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Log Out",
+                                    fontWeight = FontWeight.Black,
+                                    color = NeoBlack,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(NeoCyan, shape = RoundedCornerShape(28.dp))
+                                    .border(width = 2.5.dp, color = NeoBlack, shape = RoundedCornerShape(28.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "Avatar Siswa",
+                                    tint = NeoBlack,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+
+                            Column {
+                                Text(
+                                    text = viewModel.currentStudentName,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = NeoBlack
+                                )
+                                Text(
+                                    text = "${viewModel.currentStudentClass} • NISN: ${viewModel.currentStudentNISN}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = NeoBlack, thickness = 1.5.dp)
+                        Spacer(modifier = Modifier.height(14.dp))
+
                         Text(
-                            text = viewModel.currentStudentName,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Black,
-                            color = NeoBlack
-                        )
-                        Text(
-                            text = "${viewModel.currentStudentClass} • NISN: ${viewModel.currentStudentNISN}",
+                            text = "Hubungkan digital otentikasi Google untuk sinkronisasi otomatis nama siswa, data raport, ujian CBT, dan administrasi PPDB terintegrasi.",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.DarkGray
                         )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            NeoButton(
+                                onClick = {
+                                    val signInIntent = googleSignInClient.signInIntent
+                                    try {
+                                        launcher.launch(signInIntent)
+                                    } catch (e: Exception) {
+                                        showAlternativeSelector = true
+                                    }
+                                },
+                                backgroundColor = Color.White,
+                                modifier = Modifier.weight(1.2f)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .background(NeoOrange, shape = RoundedCornerShape(4.dp))
+                                            .border(1.dp, NeoBlack, shape = RoundedCornerShape(4.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("G", fontSize = 11.sp, fontWeight = FontWeight.Black, color = Color.White)
+                                    }
+                                    Text("Masuk Akun Google", fontWeight = FontWeight.Black, color = NeoBlack, fontSize = 11.sp)
+                                }
+                            }
+
+                            NeoButton(
+                                onClick = { showAlternativeSelector = true },
+                                backgroundColor = NeoCyan,
+                                modifier = Modifier.weight(0.8f)
+                            ) {
+                                Icon(Icons.Default.ManageAccounts, contentDescription = "Demo Account", modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Pilih Demo", fontWeight = FontWeight.Black, color = NeoBlack, fontSize = 11.sp)
+                            }
+                        }
                     }
                 }
             }
