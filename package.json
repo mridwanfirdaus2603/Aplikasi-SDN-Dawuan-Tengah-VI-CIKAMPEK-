@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "clean": "gradle clean",
+    "build": "gradle :app:assembleDebug",
     "build:apk": "gradle :app:assembleRelease",
     "build:bundle": "gradle :app:bundleRelease",
     "compile": "gradle :app:compileDebugKotlin",
