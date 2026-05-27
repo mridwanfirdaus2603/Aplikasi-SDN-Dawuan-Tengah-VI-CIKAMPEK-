@@ -55,15 +55,19 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
     var customNameInput by remember { mutableStateOf("") }
     var customEmailInput by remember { mutableStateOf("") }
 
-    // Google Sign-In options and client
-    val gso = remember {
-        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestProfile()
-            .build()
-    }
+    // Safely initialize Google Sign In
+    var isGoogleAuthSupported by remember { mutableStateOf(true) }
     val googleSignInClient = remember {
-        GoogleSignIn.getClient(context, gso)
+        try {
+            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestProfile()
+                .build()
+            GoogleSignIn.getClient(context, gso)
+        } catch (t: Throwable) {
+            isGoogleAuthSupported = false
+            null
+        }
     }
 
     val launcher = rememberLauncherForActivityResult(
@@ -418,10 +422,14 @@ fun StudentDashboardScreen(viewModel: SchoolViewModel) {
                         ) {
                             NeoButton(
                                 onClick = {
-                                    val signInIntent = googleSignInClient.signInIntent
-                                    try {
-                                        launcher.launch(signInIntent)
-                                    } catch (e: Exception) {
+                                    if (isGoogleAuthSupported && googleSignInClient != null) {
+                                        try {
+                                            val signInIntent = googleSignInClient.signInIntent
+                                            launcher.launch(signInIntent)
+                                        } catch (e: Throwable) {
+                                            showAlternativeSelector = true
+                                        }
+                                    } else {
                                         showAlternativeSelector = true
                                     }
                                 },

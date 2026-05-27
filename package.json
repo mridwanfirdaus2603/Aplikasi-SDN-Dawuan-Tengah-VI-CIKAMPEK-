@@ -1,1 +1,28 @@
-
+{
+  "name": "sdn-dawuan-vi",
+  "version": "1.0.0",
+  "description": "Interactive school web portal and Indonesian PPDB/SPMB system for SDN DAWUAN TENGAH VI featuring Neo-brutalism UI style.",
+  "private": true,
+  "scripts": {
+    "clean": "gradle clean",
+    "build:apk": "gradle :app:assembleRelease",
+    "build:bundle": "gradle :app:bundleRelease",
+    "compile": "gradle :app:compileDebugKotlin",
+    "test": "gradle :app:testDebugUnitTest",
+    "lint": "gradle :app:lintDebug"
+  },
+  "keywords": [
+    "android",
+    "kotlin",
+    "jetpack-compose",
+    "school-portal",
+    "ppdb"
+  ],
+  "author": "Muhammad Ridwan <muhammadridwanf61@gmail.com>",
+  "license": "UNLICENSED",
+  "android": {
+    "applicationId": "com.aistudio.sdndawuan.kpzxrj",
+    "versionCode": 1,
+    "versionName": "1.0"
+  }
+}
